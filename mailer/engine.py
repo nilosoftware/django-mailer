@@ -1,12 +1,11 @@
 from __future__ import unicode_literals
 
-import time
-import smtplib
 import logging
-
-import lockfile
+import smtplib
+import time
 from socket import error as socket_error
 
+import lockfile
 from django.conf import settings
 from django.core.mail import get_connection
 from django.core.mail.message import make_msgid
@@ -14,7 +13,6 @@ from django.core.mail.message import make_msgid
 from mailer.models import (
     Message, MessageLog, RESULT_SUCCESS, RESULT_FAILURE, get_message_id,
 )
-
 
 # when queue is empty, how long to wait (in seconds) before checking again
 EMPTY_QUEUE_SLEEP = getattr(settings, "MAILER_EMPTY_QUEUE_SLEEP", 30)
@@ -195,7 +193,7 @@ def send_loop():
     """
 
     while True:
-        while not Message.objects.all():
+        while not Message.objects.non_deferred():
             logging.debug("sleeping for %s seconds before checking queue again" % EMPTY_QUEUE_SLEEP)
             time.sleep(EMPTY_QUEUE_SLEEP)
         send_all()

@@ -3,6 +3,9 @@ build/
 django_mailer.egg-info/
 htmlcov/
 .tox/
+.idea/
+
+.python-version
 
 MANIFEST
 .coverage

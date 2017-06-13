@@ -2,6 +2,8 @@ from __future__ import absolute_import
 
 import warnings
 
+from django.utils.timezone import now as datetime_now
+
 VERSION = (1, 2, 3, "alpha", 0)  # following PEP 386
 DEV_N = None
 
@@ -38,7 +40,7 @@ def get_priority(priority):
 # replacement for django.core.mail.send_mail
 
 def send_mail(subject, message, from_email, recipient_list, priority=None,
-              fail_silently=False, auth_user=None, auth_password=None):
+              fail_silently=False, auth_user=None, auth_password=None, delay_until=datetime_now):
     from django.utils.encoding import force_text
     from mailer.models import make_message
 
@@ -51,13 +53,14 @@ def send_mail(subject, message, from_email, recipient_list, priority=None,
                  body=message,
                  from_email=from_email,
                  to=recipient_list,
-                 priority=priority).save()
+                 priority=priority,
+                 delay_until=delay_until()).save()
     return 1
 
 
 def send_html_mail(subject, message, message_html, from_email, recipient_list,
                    priority=None, fail_silently=False, auth_user=None,
-                   auth_password=None, headers={}):
+                   auth_password=None, headers={}, delay_until=datetime_now):
     """
     Function to queue HTML e-mails
     """
@@ -75,7 +78,8 @@ def send_html_mail(subject, message, message_html, from_email, recipient_list,
                        body=message,
                        from_email=from_email,
                        to=recipient_list,
-                       priority=priority)
+                       priority=priority,
+                       delay_until=delay_until())
     email = msg.email
     email = EmailMultiAlternatives(
         email.subject,

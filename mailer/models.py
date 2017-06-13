@@ -41,31 +41,31 @@ class MessageManager(models.Manager):
         """
         the high priority messages in the queue
         """
-        return self.filter(priority=PRIORITY_HIGH)
+        return self.filter(priority=PRIORITY_HIGH, delay_until__lte=datetime_now())
 
     def medium_priority(self):
         """
         the medium priority messages in the queue
         """
-        return self.filter(priority=PRIORITY_MEDIUM)
+        return self.filter(priority=PRIORITY_MEDIUM, delay_until__lte=datetime_now())
 
     def low_priority(self):
         """
         the low priority messages in the queue
         """
-        return self.filter(priority=PRIORITY_LOW)
+        return self.filter(priority=PRIORITY_LOW, delay_until__lte=datetime_now())
 
     def non_deferred(self):
         """
         the messages in the queue not deferred
         """
-        return self.exclude(priority=PRIORITY_DEFERRED)
+        return self.filter(delay_until__lte=datetime_now()).exclude(priority=PRIORITY_DEFERRED)
 
     def deferred(self):
         """
         the deferred messages in the queue
         """
-        return self.filter(priority=PRIORITY_DEFERRED)
+        return self.filter(priority=PRIORITY_DEFERRED, delay_until__lte=datetime_now())
 
     def retry_deferred(self, new_priority=PRIORITY_MEDIUM):
         count = 0
@@ -110,6 +110,7 @@ class Message(models.Model):
     # The actual data - a pickled EmailMessage
     message_data = models.TextField()
     when_added = models.DateTimeField(default=datetime_now)
+    delay_until = models.DateTimeField(default=datetime_now)
     priority = models.CharField(max_length=1, choices=PRIORITIES, default=PRIORITY_MEDIUM)
     # @@@ campaign?
     # @@@ content_type?
@@ -183,7 +184,7 @@ def filter_recipient_list(lst):
 
 
 def make_message(subject="", body="", from_email=None, to=None, bcc=None,
-                 attachments=None, headers=None, priority=None):
+                 attachments=None, headers=None, priority=None, delay_until=datetime_now()):
     """
     Creates a simple message for the email parameters supplied.
     The 'to' and 'bcc' lists are filtered using DontSendEntry.
@@ -204,7 +205,7 @@ def make_message(subject="", body="", from_email=None, to=None, bcc=None,
         attachments=attachments,
         headers=headers
     )
-    db_msg = Message(priority=priority)
+    db_msg = Message(priority=priority, delay_until=delay_until)
     db_msg.email = core_msg
     return db_msg
 
