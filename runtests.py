@@ -25,7 +25,6 @@ DEFAULT_SETTINGS = dict(
     SITE_ID=1,
     SECRET_KEY="notasecret",
     MIDDLEWARE_CLASSES=[],
-    USE_TZ=False,
 )
 
 
