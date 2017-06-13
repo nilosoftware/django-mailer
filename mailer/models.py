@@ -184,7 +184,7 @@ def filter_recipient_list(lst):
 
 
 def make_message(subject="", body="", from_email=None, to=None, bcc=None,
-                 attachments=None, headers=None, priority=None, delay_until=datetime_now()):
+                 attachments=None, headers=None, priority=None, delay_until=None):
     """
     Creates a simple message for the email parameters supplied.
     The 'to' and 'bcc' lists are filtered using DontSendEntry.
@@ -205,6 +205,10 @@ def make_message(subject="", body="", from_email=None, to=None, bcc=None,
         attachments=attachments,
         headers=headers
     )
+
+    if delay_until is None:
+        delay_until = datetime_now()
+
     db_msg = Message(priority=priority, delay_until=delay_until)
     db_msg.email = core_msg
     return db_msg

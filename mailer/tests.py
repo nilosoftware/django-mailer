@@ -572,6 +572,26 @@ class TestMessages(TestCase):
             # Delivery should discard broken messages
             self.assertEqual(MessageLog.objects.count(), 0)
 
+    def test_delayed_message(self):
+        with self.settings(MAILER_EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
+            mailer.send_mail("Subject Msg", "Body", "msg1@example.com", ["rec1@example.com"])
+            mailer.send_mail("Subject Msg",
+                             "Body",
+                             "msg1@example.com",
+                             ["rec1@example.com"],
+                             delay_until=datetime_now() + datetime.timedelta(1))
+
+            mailer.send_mail("Subject Msg",
+                             "Body",
+                             "msg1@example.com",
+                             ["rec1@example.com"],
+                             delay_until=datetime_now() - datetime.timedelta(1))
+
+            engine.send_all()
+            self.assertEqual(Message.objects.count(), 1)
+            self.assertEqual(Message.objects.deferred().count(), 0)
+            self.assertEqual(len(mail.outbox), 2)
+
     def test_message_log(self):
         with self.settings(MAILER_EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend"):
             mailer.send_mail("Subject Log", "Body", "log1@example.com", ["1gol@example.com"])
